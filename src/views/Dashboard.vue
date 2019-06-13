@@ -17,13 +17,16 @@
         </li>
       </ul>
     </div>
+    <tab-movie v-for="category in categories" :key="category.id" :category="category.id"></tab-movie>
   </div>
 </template>
 
 <script>
 import { db } from "../main";
+import TabMovie from "../components/TabMovie.vue";
 export default {
   name: "dashboard",
+  components: { TabMovie },
   data() {
     return {
       categories: [],

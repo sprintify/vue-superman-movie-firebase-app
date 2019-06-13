@@ -22,6 +22,7 @@
           <router-link to="/about" class="navbar-item">About</router-link>
         </div>
 
+        <!-- Sign up -->
         <div class="navbar-end">
           <div class="navbar-item">
             <div class="field is-grouped" v-if="!isAuthenticated">
@@ -31,6 +32,7 @@
                 >
               </p>
 
+              <!-- Login -->
               <p class="control">
                 <router-link to="/login" class="button is-info"
                   >Log in</router-link
@@ -38,6 +40,7 @@
               </p>
             </div>
 
+            <!-- Add category -->
             <div class="field" v-else>
               <div class="field is-grouped">
                 <p class="control">
@@ -48,6 +51,18 @@
                     Add category
                   </button>
                 </p>
+
+                <!-- Add movie -->
+                <p class="control">
+                  <button
+                    @click="showMovieForm = !showMovieForm"
+                    class="button is-primary"
+                  >
+                    Add movie
+                  </button>
+                </p>
+
+                <!-- Log out -->
                 <p class="control">
                   <button class="button is-danger" @click="logout">
                     Log out
@@ -59,6 +74,8 @@
         </div>
       </div>
     </nav>
+
+    <!-- modal add category -->
     <div class="modal" :class="{ 'is-active': showCategoryForm }">
       <div class="modal-background"></div>
       <div class="modal-content">
@@ -78,6 +95,45 @@
       ></button>
     </div>
 
+    <!-- modal add movie-->
+    <div class="modal" :class="{ 'is-active': showMovieForm }">
+      <div class="modal-background"></div>
+      <div class="modal-content">
+        <form @submit.prevent="addMovie">
+
+          <div class="field">
+            <input type="text" class="input" v-model="title" placeholder="title"/>
+          </div>
+
+          <div class="field">
+            <input type="text" class="input" v-model="url" placeholder="url"/>
+          </div>
+
+
+          <div class="field">
+            <select v-model="category">
+              <option value="empty" selected>Choose category</option>
+              <option
+                v-for="category in categories"
+                :key="category.title"
+                :value="category.id"
+                >{{ category.title }}</option
+              >
+            </select>
+          </div>
+
+          <div class="field">
+            <button class="button is-success">Add</button>
+          </div>
+        </form>
+      </div>
+      <button
+        class="modal-close is-large"
+        aria-label="close"
+        @click="showMovieForm = !showMovieForm"
+      ></button>
+    </div>
+
     <router-view />
   </div>
 </template>
@@ -89,8 +145,17 @@ export default {
   data() {
     return {
       isAuthenticated: false,
-      showCategoryForm: false, 
-      title: ''
+      showCategoryForm: false,
+      showMovieForm: false,
+      title: "",
+      category: "empty",
+      url: "",
+      categories: []
+    };
+  },
+  firestore() {
+    return {
+      categories: db.collection("categories")
     };
   },
   created() {
@@ -104,13 +169,29 @@ export default {
     addCategory() {
       const category = {
         title: this.title
+      };
+
+      db.collection("categories").add(category);
+
+      this.showCategoryForm = false;
+      this.title = "";
+    },
+    addMovie() {
+      if (this.title && this.category !== "empty") {
+        const movie = {
+          title: this.title,
+          url: this.url
+        };
+
+        db.collection('categories').doc(this.category).collection('movies').add(movie)
+
+        this.title = ''
+        this.url = ''
+        this.category = 'empty'
+        this.showMovieForm = false
+      } else {
+        alert("You have to fill out all the fields!");
       }
-
-      db.collection("categories").add(category)
-
-      this.showCategoryForm = false
-      this.title = ''
-
     },
     logout() {
       firebase
