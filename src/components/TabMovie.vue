@@ -1,13 +1,26 @@
 <template>
   <div class="columns is-multiline">
-    <div class="card column is-4" v-for="movie in movies" :key="movie.id">
-      <div class="card-image">
-        <iframe :src="embedable(movie.url)" width="100%" height="200" allowfullscreen></iframe>
+    <div class="column is-4" v-for="movie in movies" :key="movie.id">
+      <div class="card">
+        <div class="card-image">
+          <iframe
+            :src="embedable(movie.url)"
+            width="100%"
+            height="200"
+            allowfullscreen
+          ></iframe>
+        </div>
+        <div class="content">{{ movie.title }}</div>
+        <div class="card-footer">
+          <a
+            @click="deleteMovie(movie)"
+            class="card-footer-item button is-danger"
+            >Delete</a
+          >
+        </div>
       </div>
-      <div class="content">{{ movie.title }}</div>
     </div>
   </div>
-  <!-- <div>{{ $props.category }}</div> -->
 </template>
 
 <script>
@@ -27,8 +40,9 @@ export default {
   mounted() {
     if (this.$props.category === "Newest") {
       for (var i = 0; i < this.$props.categories.length; i++) {
+        const categoryID = this.$props.categories[i].id;
         db.collection("categories")
-          .doc(this.$props.categories[i].id)
+          .doc(categoryID)
           .collection("movies")
           .get()
           .then(querySnapshot => {
@@ -36,7 +50,9 @@ export default {
               if (this.movies.length < 7) {
                 this.movies.push({
                   title: collection.data().title,
-                  url: collection.data().url
+                  url: collection.data().url,
+                  id: collection.id,
+                  category: categoryID
                 });
               }
             });
@@ -57,6 +73,32 @@ export default {
   methods: {
     embedable(url) {
       return "https://youtube.com/embed/" + url.split("=")[1];
+    },
+    deleteMovie(movie) {
+      if (this.$props.category === "Newest") {
+        db.collection("categories")
+          .doc(movie.category)
+          .collection("movies")
+          .doc(movie.id)
+          .delete();
+
+        let index;
+
+        for (let i = 0; i < this.movies.length; i++) {
+          if (movie.id === this.movies[i].id) {
+            index = i;
+
+            break;
+          }
+        }
+        this.movies.splice(index, 1);
+      } else {
+        db.collection("categories")
+          .doc(this.$props.category)
+          .collection("movies")
+          .doc(movie.id)
+          .delete();
+      }
     }
   }
 };
