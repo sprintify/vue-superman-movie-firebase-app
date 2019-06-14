@@ -4,20 +4,31 @@
 
     <div class="tabs">
       <ul>
-        <li :class="{ 'is-active' : activeCategory === 'Newest' }">
+        <li :class="{ 'is-active': activeCategory === 'Newest' }">
           <a @click="setCategory('Newest')">Newest</a>
         </li>
 
         <li
           v-for="category in categories"
           :key="category.title"
-          :class="{ 'is-active' : activeCategory === category.title }"
+          :class="{ 'is-active': activeCategory === category.title }"
         >
           <a @click="setCategory(category.title)">{{ category.title }}</a>
         </li>
       </ul>
     </div>
-    <tab-movie v-for="category in categories" :key="category.id" :category="category.id"></tab-movie>
+    <tab-movie
+      category="Newest"
+      v-if="activeCategory === 'Newest'"
+      :categories="categories"
+    ></tab-movie>
+
+    <tab-movie
+      v-for="category in categories"
+      :key="category.id"
+      :category="category.id"
+      v-if="activeCategory === category.title"
+    ></tab-movie>
   </div>
 </template>
 
@@ -30,7 +41,7 @@ export default {
   data() {
     return {
       categories: [],
-      activeCategory: 'Newest'
+      activeCategory: "Newest"
       // categories: ["Thriller", "Comedy", "Action"]
     };
   },
